@@ -1,28 +1,56 @@
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4 } from 'uuid';
+import { useForm } from 'react-hook-form'
 import ModalMUI from '@mui/material/Modal';
 
-import { useAppDispatch } from "../../app/hooks";
-import { addUser } from "../../features/users/userSlice";
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
+import { addUser, updateUser } from '../../features/users/userSlice';
 
-import { ModalContainer, Title, Input, Button } from "./styles";
+import { ModalContainer, Title, Input, Button } from './styles';
 
 interface Props {
+  id?: string;
   isOpen: boolean;
   setIsOpenModal: Function;
 }
 
-export function Modal({ isOpen, setIsOpenModal }: Props) {
+interface AddUserFormData {
+  avatar: string;
+  name: string;
+  email: string;
+}
+
+export function Modal({ id, isOpen, setIsOpenModal }: Props) {
   const dispatch = useAppDispatch();
 
-  const handleClose = () => setIsOpenModal(false);
+  const { register, handleSubmit, reset } = useForm<AddUserFormData>();
 
-  function onSubmit() {
-    dispatch(addUser({
-      id: uuidv4(),
-      avatar: '',
-      name: 'Teste',
-      email: 'teste@gmail.com'
-    }));
+  const userData = useAppSelector((state) =>
+    state.user.userList.find((user) => user.id === id)
+  );
+  console.log('userData', userData)
+
+  function handleClose() {
+    setIsOpenModal(false)
+    reset();
+  };
+
+  function onSubmit(data: AddUserFormData) {
+    console.log('data', data)
+    if (id) {
+      dispatch(updateUser({
+        id,
+        avatar: data.avatar,
+        name: data.name,
+        email: data.email
+      }));
+    } else {
+      dispatch(addUser({
+        id: uuidv4(),
+        avatar: data.avatar,
+        name: data.name,
+        email: data.email
+      }));
+    }
 
     handleClose();
   }
@@ -35,20 +63,39 @@ export function Modal({ isOpen, setIsOpenModal }: Props) {
       aria-describedby="modal-modal-description"
     >
       <ModalContainer>
-        <Title id="modal-modal-title">
-          Add user
-        </Title>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Title id="modal-modal-title">
+            Add user
+          </Title>
 
-        <Input label="Avatar URL" variant="outlined" />
-        <Input label="Name" variant="outlined" />
-        <Input label="Email" variant="outlined" />
+          {userData?.name}
 
-        <Button
-          variant="contained"
-          onClick={onSubmit}
-        >
-          Add User
-        </Button>
+          <Input
+            defaultValue={userData?.avatar}
+            label="Avatar URL"
+            variant="outlined"
+            {...register("avatar")}
+          />
+          <Input
+            defaultValue={userData?.name}
+            label="Name"
+            variant="outlined"
+            {...register("name")}
+          />
+          <Input
+            defaultValue={userData?.email}
+            label="Email"
+            variant="outlined"
+            {...register("email")}
+          />
+
+          <Button
+            variant="contained"
+            type="submit"
+          >
+            Add User
+          </Button>
+        </form>
       </ModalContainer>
     </ModalMUI>
   )

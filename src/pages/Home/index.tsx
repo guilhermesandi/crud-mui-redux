@@ -12,7 +12,10 @@ export function Home() {
   const userList = useAppSelector((state) => state.user.userList);
 
   const [isOpenModal, setIsOpenModal] = useState(false);
-  const handleOpen = () => setIsOpenModal(true);
+  
+  function handleOpen() {
+    setIsOpenModal(true)
+  };
 
   return (
     <Container>

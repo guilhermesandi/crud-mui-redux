@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { styled } from '@mui/material/styles';
 import TableMUI from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -11,6 +12,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import { UserProps, removeUser } from '../../features/users/userSlice';
 import { useAppDispatch } from '../../app/hooks';
+
+import { Modal } from '../../components/Modal';
 
 import { Button } from './styles';
 
@@ -41,6 +44,18 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 export function Table({ users }: UsersProps) {
   const dispatch = useAppDispatch();
 
+  const [isOpenModal, setIsOpenModal] = useState(false);
+  const [userId, setUserId] = useState('');
+
+  function handleOpen() {
+    setIsOpenModal(true)
+  };
+
+  function handleEditUser(id: string) {
+    setUserId(id);
+    handleOpen();
+  }
+
   return (
     <TableContainer component={Paper}>
       <TableMUI>
@@ -65,7 +80,10 @@ export function Table({ users }: UsersProps) {
               <StyledTableCell align="left">{user.name}</StyledTableCell>
               <StyledTableCell align="left">{user.email}</StyledTableCell>
               <StyledTableCell align="right">
-                <Button variant="outlined">
+                <Button
+                  variant="outlined"
+                  onClick={() => handleEditUser(user.id)}
+                >
                   Edit
                 </Button>
                 <IconButton 
@@ -78,6 +96,11 @@ export function Table({ users }: UsersProps) {
               </StyledTableCell>
             </StyledTableRow>
           ))}
+          <Modal
+            id={userId}
+            isOpen={isOpenModal}
+            setIsOpenModal={setIsOpenModal}
+          />
         </TableBody>
       </TableMUI>
     </TableContainer>
