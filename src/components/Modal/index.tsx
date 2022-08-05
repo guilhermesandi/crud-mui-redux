@@ -1,5 +1,8 @@
+import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup';
 import ModalMUI from '@mui/material/Modal';
 
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
@@ -13,46 +16,59 @@ interface Props {
   setIsOpenModal: Function;
 }
 
-interface AddUserFormData {
-  avatar: string;
-  name: string;
-  email: string;
-}
+const userFormValidationSchema = yup.object({
+  avatar: yup.string(),
+  name: yup.string().required(),
+  email: yup.string().email().required(),
+})
+
+type UserFormData = yup.InferType<typeof userFormValidationSchema>
 
 export function Modal({ id, isOpen, setIsOpenModal }: Props) {
   const dispatch = useAppDispatch();
 
-  const { register, handleSubmit, reset } = useForm<AddUserFormData>();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<UserFormData>({
+    resolver: yupResolver(userFormValidationSchema),
+  });
 
   const userData = useAppSelector((state) =>
     state.user.userList.find((user) => user.id === id)
   );
-  console.log('userData', userData)
 
   function handleClose() {
     setIsOpenModal(false)
     reset();
   };
 
-  function onSubmit(data: AddUserFormData) {
-    console.log('data', data)
-    if (id) {
-      dispatch(updateUser({
-        id,
-        avatar: data.avatar,
-        name: data.name,
-        email: data.email
-      }));
-    } else {
-      dispatch(addUser({
-        id: uuidv4(),
-        avatar: data.avatar,
-        name: data.name,
-        email: data.email
-      }));
-    }
+  function onSubmit(data: UserFormData) {
+    setIsLoading(true);
+    setTimeout(() => {
+      if (id) {
+        dispatch(updateUser({
+          id,
+          avatar: data.avatar,
+          name: data.name,
+          email: data.email
+        }));
+      } else {
+        dispatch(addUser({
+          id: uuidv4(),
+          avatar: data.avatar,
+          name: data.name,
+          email: data.email
+        }));
+      }
+      setIsLoading(false);
 
-    handleClose();
+      handleClose();
+    }, 1500);
   }
 
   return (
@@ -68,29 +84,36 @@ export function Modal({ id, isOpen, setIsOpenModal }: Props) {
             Add user
           </Title>
 
-          {userData?.name}
-
           <Input
             defaultValue={userData?.avatar}
             label="Avatar URL"
             variant="outlined"
+            error={!!errors.avatar}
+            helperText={errors.avatar?.message}
             {...register("avatar")}
           />
           <Input
             defaultValue={userData?.name}
             label="Name"
             variant="outlined"
+            required
+            error={!!errors.name}
+            helperText={errors.name?.message}
             {...register("name")}
           />
           <Input
             defaultValue={userData?.email}
             label="Email"
             variant="outlined"
+            required
+            error={!!errors.email}
+            helperText={errors.email?.message}
             {...register("email")}
           />
 
           <Button
             variant="contained"
+            loading={isLoading}
             type="submit"
           >
             Add User

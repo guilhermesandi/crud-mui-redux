@@ -1,5 +1,6 @@
 import styled from "styled-components";
-import { Box, Typography, TextField, Button as ButtonMUI } from '@mui/material';
+import { Box, Typography, TextField } from '@mui/material';
+import LoadingButton from '@mui/lab/LoadingButton';
 
 export const ModalContainer = styled(Box)`
   position: absolute;
@@ -26,7 +27,7 @@ export const Input = styled(TextField)`
   }
 `;
 
-export const Button = styled(ButtonMUI)`
+export const Button = styled(LoadingButton)`
   && {
     padding-left: 2rem;
     padding-right: 2rem;
